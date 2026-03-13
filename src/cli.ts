@@ -1,7 +1,13 @@
 import { existsSync } from "fs";
+import chalk from "chalk";
 import { BatBotCommand } from "./command";
 import { VERSION, LOGO } from "./index";
-import { getConfigPath } from "./config";
+import {
+  getConfigPath,
+  getWorkspacePath,
+  saveConfig,
+  ConfigSchema,
+} from "./config";
 import { logger } from "./log";
 
 const program = new BatBotCommand();
@@ -15,14 +21,28 @@ program
   .command("onboard")
   .description("Initialize batbot configuration and workspace.")
   .action(() => {
-    logger.info("Initializing batbot configuration and workspace...");
     const configPath = getConfigPath();
+    const workspacePath = getWorkspacePath();
+
+    const config = ConfigSchema.parse(undefined);
 
     if (existsSync(configPath)) {
+    } else {
+      saveConfig(config, configPath);
+    }
+
+    if (!existsSync(workspacePath)) {
+      logger.info(`Creating workspace directory: ${workspacePath}`);
     }
 
     logger.info(`${LOGO} batbot is ready!`);
     logger.info(`\nNext steps:`);
+    logger.info(`  1. Add your API key to ${chalk.cyan(configPath)}`);
+    logger.info(`     Get one at: https://openrouter.ai/keys`);
+    logger.info(`  2. Chat: ${chalk.cyan('batbot agent -m "Hello!"')}`);
+    logger.info(
+      `\n${chalk.dim("Want Telegram/WhatsApp? See: https://github.com/neciszhang/batbot#-chat-apps")}`,
+    );
   });
 
 program
