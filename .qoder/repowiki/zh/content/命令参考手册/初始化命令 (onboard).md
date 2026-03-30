@@ -3,17 +3,21 @@
 <cite>
 **本文引用的文件**
 - [cli.ts](file://src/cli.ts)
-- [index.ts](file://src/index.ts)
 - [paths.ts](file://src/config/paths.ts)
 - [loader.ts](file://src/config/loader.ts)
 - [schema.ts](file://src/config/schema.ts)
 - [helpers.ts](file://src/utils/helpers.ts)
-- [index.ts](file://src/command/index.ts)
 - [index.ts](file://src/log/index.ts)
 - [package.json](file://package.json)
 - [MEMORY.md](file://src/templates/memory/MEMORY.md)
 - [AGENTS.md](file://src/templates/AGENTS.md)
 </cite>
+
+## 更新摘要
+**变更内容**
+- 新增交互式配置初始化功能，使用 @clack/prompts 提供用户友好的确认对话框
+- 改进配置覆盖与保留模式的用户交互体验
+- 保持原有配置路径、模板同步和工作空间创建功能不变
 
 ## 目录
 1. [简介](#简介)
@@ -34,7 +38,9 @@
 - 同步模板文件到工作空间
 - 输出下一步操作指引
 
-该命令会根据目标主机的用户目录生成默认配置与工作空间路径，并在必要时提示用户选择覆盖或保留策略。
+该命令会根据目标主机的用户目录生成默认配置与工作空间路径，并在必要时通过交互式确认对话框提示用户选择覆盖或保留策略。
+
+**更新** 新增了 @clack/prompts 库，提供更友好的用户交互体验，支持直观的确认对话框来选择配置处理模式。
 
 ## 项目结构
 与 onboard 命令直接相关的模块与职责如下：
@@ -43,6 +49,7 @@
 - 工具函数：负责模板同步与工作空间目录创建
 - 日志系统：统一输出信息、警告与成功提示
 - 模板资源：提供默认模板文件，供同步到工作空间
+- 交互式提示：使用 @clack/prompts 提供用户友好的确认对话框
 
 ```mermaid
 graph TB
@@ -51,30 +58,28 @@ CLI --> Loader["配置保存<br/>src/config/loader.ts"]
 CLI --> Schema["配置模式与默认值<br/>src/config/schema.ts"]
 CLI --> Utils["模板同步<br/>src/utils/helpers.ts"]
 CLI --> Log["日志输出<br/>src/log/index.ts"]
+CLI --> Clack["@clack/prompts<br/>交互式确认对话框"]
 Utils --> Templates["模板资源<br/>src/templates/*.md<br/>src/templates/memory/*.md"]
-CLI --> Cmd["命令扩展<br/>src/command/index.ts"]
 CLI --> Ver["版本信息<br/>src/index.ts"]
 ```
 
-图表来源
-- [cli.ts:1-94](file://src/cli.ts#L1-L94)
+**图表来源**
+- [cli.ts:1-112](file://src/cli.ts#L1-L112)
 - [paths.ts:1-11](file://src/config/paths.ts#L1-L11)
-- [loader.ts:1-16](file://src/config/loader.ts#L1-L16)
+- [loader.ts:1-29](file://src/config/loader.ts#L1-L29)
 - [schema.ts:1-146](file://src/config/schema.ts#L1-L146)
 - [helpers.ts:1-47](file://src/utils/helpers.ts#L1-L47)
 - [index.ts:1-49](file://src/log/index.ts#L1-L49)
-- [index.ts:1-16](file://src/command/index.ts#L1-L16)
-- [index.ts:1-4](file://src/index.ts#L1-L4)
+- [package.json:22-24](file://package.json#L22-L24)
 
-章节来源
-- [cli.ts:1-94](file://src/cli.ts#L1-L94)
+**章节来源**
+- [cli.ts:1-112](file://src/cli.ts#L1-L112)
 - [paths.ts:1-11](file://src/config/paths.ts#L1-L11)
-- [loader.ts:1-16](file://src/config/loader.ts#L1-L16)
+- [loader.ts:1-29](file://src/config/loader.ts#L1-L29)
 - [schema.ts:1-146](file://src/config/schema.ts#L1-L146)
 - [helpers.ts:1-47](file://src/utils/helpers.ts#L1-L47)
 - [index.ts:1-49](file://src/log/index.ts#L1-L49)
-- [index.ts:1-16](file://src/command/index.ts#L1-L16)
-- [index.ts:1-4](file://src/index.ts#L1-L4)
+- [package.json:1-36](file://package.json#L1-L36)
 
 ## 核心组件
 - CLI 子命令注册与执行：在 CLI 入口中注册 onboard 子命令，解析执行初始化流程
@@ -82,17 +87,21 @@ CLI --> Ver["版本信息<br/>src/index.ts"]
 - 配置保存：确保配置目录存在并写入默认配置
 - 模板同步：扫描内置模板，复制到工作空间，缺失即创建
 - 日志输出：统一输出初始化进度与后续指引
+- 交互式确认：使用 @clack/prompts 提供用户友好的确认对话框
 
-章节来源
-- [cli.ts:21-56](file://src/cli.ts#L21-L56)
+**更新** 新增了 @clack/prompts 依赖，用于提供更直观的用户交互体验。
+
+**章节来源**
+- [cli.ts:24-74](file://src/cli.ts#L24-L74)
 - [paths.ts:4-10](file://src/config/paths.ts#L4-L10)
-- [loader.ts:6-15](file://src/config/loader.ts#L6-L15)
+- [loader.ts:22-29](file://src/config/loader.ts#L22-L29)
 - [schema.ts:118-128](file://src/config/schema.ts#L118-L128)
 - [helpers.ts:11-46](file://src/utils/helpers.ts#L11-L46)
 - [index.ts:5-44](file://src/log/index.ts#L5-L44)
+- [package.json:22-24](file://package.json#L22-L24)
 
 ## 架构总览
-下图展示 onboard 命令从注册到执行的关键交互：
+下图展示 onboard 命令从注册到执行的关键交互，包括新增的交互式确认流程：
 
 ```mermaid
 sequenceDiagram
@@ -104,11 +113,14 @@ participant L as "配置保存<br/>src/config/loader.ts"
 participant H as "模板同步<br/>src/utils/helpers.ts"
 participant T as "模板资源<br/>src/templates/*"
 participant LOG as "日志输出<br/>src/log/index.ts"
+participant C as "@clack/prompts<br/>交互式确认"
 U->>CLI : 执行 "batbot onboard"
 CLI->>P : 获取配置路径与工作空间路径
 CLI->>S : 生成默认配置对象
 alt 配置已存在
-CLI->>LOG : 输出覆盖/刷新选项提示
+CLI->>LOG : 输出覆盖/刷新选项说明
+CLI->>C : 显示确认对话框
+C-->>CLI : 用户选择覆盖或刷新
 else 配置不存在
 CLI->>L : 写入默认配置
 L-->>CLI : 保存成功
@@ -119,13 +131,14 @@ H-->>CLI : 返回新增文件列表
 CLI->>LOG : 输出初始化完成与下一步指引
 ```
 
-图表来源
-- [cli.ts:24-56](file://src/cli.ts#L24-L56)
+**图表来源**
+- [cli.ts:26-74](file://src/cli.ts#L26-L74)
 - [paths.ts:4-10](file://src/config/paths.ts#L4-L10)
 - [schema.ts:118-128](file://src/config/schema.ts#L118-L128)
-- [loader.ts:6-15](file://src/config/loader.ts#L6-L15)
+- [loader.ts:22-29](file://src/config/loader.ts#L22-L29)
 - [helpers.ts:11-46](file://src/utils/helpers.ts#L11-L46)
 - [index.ts:5-44](file://src/log/index.ts#L5-L44)
+- [package.json:22-24](file://package.json#L22-L24)
 
 ## 详细组件分析
 
@@ -133,22 +146,24 @@ CLI->>LOG : 输出初始化完成与下一步指引
 - 路径检查：获取配置路径与工作空间路径
 - 默认配置生成：使用配置模式生成默认配置对象
 - 配置处理分支：
-  - 若配置已存在：输出覆盖与刷新两种模式的提示
+  - 若配置已存在：通过 @clack/prompts 显示确认对话框，让用户选择覆盖或刷新模式
   - 若配置不存在：直接保存默认配置
 - 工作空间创建：若目录不存在则递归创建
 - 模板同步：扫描模板目录，复制 .md 文件到工作空间；同时创建 memory 目录与 HISTORY.md
 - 完成提示：输出 batbot 就绪信息与下一步操作指引
+
+**更新** 新增了 @clack/prompts 的交互式确认流程，替代了原有的文本提示方式，提供更直观的用户选择体验。
 
 ```mermaid
 flowchart TD
 Start(["开始"]) --> GetPaths["获取配置与工作空间路径"]
 GetPaths --> GenDefault["生成默认配置对象"]
 GenDefault --> Exists{"配置是否存在？"}
-Exists --> |是| Prompt["输出覆盖/刷新选项"]
+Exists --> |是| ShowDialog["显示 @clack/prompts 确认对话框"]
 Exists --> |否| SaveCfg["保存默认配置"]
-Prompt --> Decide{"用户选择"}
-Decide --> |覆盖| Overwrite["以默认值覆盖现有配置"]
-Decide --> |刷新| Refresh["保留现有值并补充新字段"]
+ShowDialog --> UserChoice{"用户选择"}
+UserChoice --> |覆盖| Overwrite["以默认值覆盖现有配置"]
+UserChoice --> |刷新| Refresh["保留现有值并补充新字段"]
 SaveCfg --> Mkdir["创建工作空间目录"]
 Overwrite --> Mkdir
 Refresh --> Mkdir
@@ -156,19 +171,21 @@ Mkdir --> SyncTpl["同步模板到工作空间"]
 SyncTpl --> Done(["结束"])
 ```
 
-图表来源
-- [cli.ts:24-56](file://src/cli.ts#L24-L56)
+**图表来源**
+- [cli.ts:26-74](file://src/cli.ts#L26-L74)
 - [paths.ts:4-10](file://src/config/paths.ts#L4-L10)
 - [schema.ts:118-128](file://src/config/schema.ts#L118-L128)
-- [loader.ts:6-15](file://src/config/loader.ts#L6-L15)
+- [loader.ts:22-29](file://src/config/loader.ts#L22-L29)
 - [helpers.ts:11-46](file://src/utils/helpers.ts#L11-L46)
+- [package.json:22-24](file://package.json#L22-L24)
 
-章节来源
-- [cli.ts:24-56](file://src/cli.ts#L24-L56)
+**章节来源**
+- [cli.ts:26-74](file://src/cli.ts#L26-L74)
 - [paths.ts:4-10](file://src/config/paths.ts#L4-L10)
 - [schema.ts:118-128](file://src/config/schema.ts#L118-L128)
-- [loader.ts:6-15](file://src/config/loader.ts#L6-L15)
+- [loader.ts:22-29](file://src/config/loader.ts#L22-L29)
 - [helpers.ts:11-46](file://src/utils/helpers.ts#L11-L46)
+- [package.json:22-24](file://package.json#L22-L24)
 
 ### 配置路径与默认值
 - 配置路径：位于用户主目录下的 .batbot/config.json
@@ -176,10 +193,10 @@ SyncTpl --> Done(["结束"])
 - 默认配置：由配置模式生成，包含 agents、channels、providers、gateway、tools 等键的默认值
 - 配置保存：确保配置目录存在后写入 JSON，默认缩进格式化
 
-章节来源
+**章节来源**
 - [paths.ts:4-10](file://src/config/paths.ts#L4-L10)
 - [schema.ts:118-128](file://src/config/schema.ts#L118-L128)
-- [loader.ts:6-15](file://src/config/loader.ts#L6-L15)
+- [loader.ts:22-29](file://src/config/loader.ts#L22-L29)
 
 ### 模板同步机制
 - 模板来源：src/templates 下的 .md 文件与 memory 目录
@@ -189,7 +206,7 @@ SyncTpl --> Done(["结束"])
   - 确保 skills 目录存在
 - 输出行为：非静默模式下逐项输出新增文件名
 
-章节来源
+**章节来源**
 - [helpers.ts:11-46](file://src/utils/helpers.ts#L11-L46)
 - [MEMORY.md:1-24](file://src/templates/memory/MEMORY.md#L1-L24)
 - [AGENTS.md:1-22](file://src/templates/AGENTS.md#L1-L22)
@@ -202,22 +219,28 @@ SyncTpl --> Done(["结束"])
   - 模板同步后的新增文件列表
   - 初始化完成后下一步操作指引
 
-章节来源
+**章节来源**
 - [index.ts:5-44](file://src/log/index.ts#L5-L44)
-- [cli.ts:30-56](file://src/cli.ts#L30-L56)
+- [cli.ts:32-74](file://src/cli.ts#L32-L74)
 
-### 命令注册与帮助
-- 自定义命令类：继承 commander.Command，重写 createHelp 以支持自定义帮助
-- onboard 注册：在 CLI 入口中注册子命令并绑定 action
+### 交互式确认对话框
+- @clack/prompts 集成：使用 confirm 函数创建确认对话框
+- 用户选择：Yes = 覆盖现有配置，No = 保留现有配置并补充新字段
+- 交互体验：提供直观的键盘确认界面，支持箭头键导航和回车确认
 
-章节来源
-- [index.ts:5-12](file://src/command/index.ts#L5-L12)
-- [cli.ts:21-23](file://src/cli.ts#L21-L23)
+**新增** 通过 @clack/prompts 库实现了现代化的用户交互体验。
+
+**章节来源**
+- [cli.ts:40-53](file://src/cli.ts#L40-L53)
+- [package.json:22-24](file://package.json#L22-L24)
 
 ## 依赖关系分析
 - CLI 依赖配置路径、配置保存、配置模式、模板同步与日志模块
 - 模板同步依赖模板资源目录
 - 日志模块被 CLI 与模板同步共同使用
+- 新增 @clack/prompts 依赖，用于交互式确认对话框
+
+**更新** 新增了 @clack/prompts 作为新的运行时依赖。
 
 ```mermaid
 graph LR
@@ -226,38 +249,38 @@ CLI --> LOADER["src/config/loader.ts"]
 CLI --> SCHEMA["src/config/schema.ts"]
 CLI --> HELPERS["src/utils/helpers.ts"]
 CLI --> LOG["src/log/index.ts"]
+CLI --> CLACK["@clack/prompts"]
 HELPERS --> TPL["src/templates/*"]
-CMD["src/command/index.ts"] --> CLI
 VER["src/index.ts"] --> CLI
 PKG["package.json"] --> CLI
+PKG --> CLACK
 ```
 
-图表来源
-- [cli.ts:1-94](file://src/cli.ts#L1-L94)
+**图表来源**
+- [cli.ts:1-112](file://src/cli.ts#L1-L112)
 - [paths.ts:1-11](file://src/config/paths.ts#L1-L11)
-- [loader.ts:1-16](file://src/config/loader.ts#L1-L16)
+- [loader.ts:1-29](file://src/config/loader.ts#L1-L29)
 - [schema.ts:1-146](file://src/config/schema.ts#L1-L146)
 - [helpers.ts:1-47](file://src/utils/helpers.ts#L1-L47)
 - [index.ts:1-49](file://src/log/index.ts#L1-L49)
-- [index.ts:1-16](file://src/command/index.ts#L1-L16)
-- [index.ts:1-4](file://src/index.ts#L1-L4)
-- [package.json:1-35](file://package.json#L1-L35)
+- [package.json:22-24](file://package.json#L22-L24)
 
-章节来源
-- [cli.ts:1-94](file://src/cli.ts#L1-L94)
+**章节来源**
+- [cli.ts:1-112](file://src/cli.ts#L1-L112)
 - [paths.ts:1-11](file://src/config/paths.ts#L1-L11)
-- [loader.ts:1-16](file://src/config/loader.ts#L1-L16)
+- [loader.ts:1-29](file://src/config/loader.ts#L1-L29)
 - [schema.ts:1-146](file://src/config/schema.ts#L1-L146)
 - [helpers.ts:1-47](file://src/utils/helpers.ts#L1-L47)
 - [index.ts:1-49](file://src/log/index.ts#L1-L49)
-- [index.ts:1-16](file://src/command/index.ts#L1-L16)
-- [index.ts:1-4](file://src/index.ts#L1-L4)
-- [package.json:1-35](file://package.json#L1-L35)
+- [package.json:1-36](file://package.json#L1-L36)
 
 ## 性能考量
 - 模板同步为一次性文件操作，文件数量有限，性能开销可忽略
 - 仅在配置不存在时进行写入，避免重复 IO
 - 使用递归创建目录，减少多次调用
+- @clack/prompts 为轻量级交互库，对性能影响微乎其微
+
+**更新** @clack/prompts 作为轻量级依赖，对整体性能影响很小。
 
 ## 故障排查指南
 - 权限不足导致无法创建配置或工作空间
@@ -271,14 +294,22 @@ PKG["package.json"] --> CLI
   - 处理：确认工作空间中已有对应文件；如需强制覆盖，请先删除再执行 onboard
 - 覆盖与刷新模式混淆
   - 现象：期望保留旧配置但被覆盖
-  - 处理：重新执行 onboard 并选择“刷新”模式，以保留现有值并补充新字段
+  - 处理：重新执行 onboard 并选择"刷新"模式，以保留现有值并补充新字段
+- 交互式确认对话框无法显示
+  - 现象：命令行环境不支持 @clack/prompts
+  - 处理：确保终端支持 ANSI 控制序列，或在 CI 环境中使用非交互模式
 
-章节来源
-- [cli.ts:30-39](file://src/cli.ts#L30-L39)
+**更新** 新增了 @clack/prompts 相关的故障排查指导。
+
+**章节来源**
+- [cli.ts:32-57](file://src/cli.ts#L32-L57)
 - [helpers.ts:19-29](file://src/utils/helpers.ts#L19-L29)
+- [package.json:22-24](file://package.json#L22-L24)
 
 ## 结论
-onboard 初始化命令通过统一的路径、配置与模板机制，为用户提供了标准化的首次体验。其设计强调默认值的安全性与可扩展性，并通过清晰的日志输出引导用户完成后续配置与使用。
+onboard 初始化命令通过统一的路径、配置与模板机制，为用户提供了标准化的首次体验。其设计强调默认值的安全性与可扩展性，并通过清晰的日志输出引导用户完成后续配置与使用。新增的 @clack/prompts 交互式确认功能进一步提升了用户体验，使配置初始化过程更加直观和用户友好。
+
+**更新** 通过引入 @clack/prompts，onboard 命令在保持原有功能的基础上，显著改善了用户交互体验。
 
 ## 附录
 
@@ -286,12 +317,15 @@ onboard 初始化命令通过统一的路径、配置与模板机制，为用户
 - 基本用法
   - 在终端执行 batbot onboard，按提示完成初始化
 - 覆盖现有配置
-  - 当配置已存在时，选择覆盖选项以用默认值替换
+  - 当配置已存在时，确认对话框中选择 Yes 以用默认值替换
 - 保留现有配置
-  - 当配置已存在时，选择刷新选项以保留现有值并补充新增字段
+  - 当配置已存在时，确认对话框中选择 No 以保留现有值并补充新增字段
 
-章节来源
-- [cli.ts:30-39](file://src/cli.ts#L30-L39)
+**更新** 新增了 @clack/prompts 交互式确认的具体使用说明。
+
+**章节来源**
+- [cli.ts:32-57](file://src/cli.ts#L32-L57)
+- [cli.ts:40-53](file://src/cli.ts#L40-L53)
 
 ### 参数说明
 - 无额外参数：onboard 为一次性初始化命令，不接受额外参数
@@ -299,14 +333,28 @@ onboard 初始化命令通过统一的路径、配置与模板机制，为用户
   - 覆盖：丢弃旧配置，使用默认配置
   - 刷新：保留旧配置，仅补充新增字段
 
-章节来源
-- [cli.ts:30-39](file://src/cli.ts#L30-L39)
+**章节来源**
+- [cli.ts:32-57](file://src/cli.ts#L32-L57)
 
 ### 最佳实践
 - 首次安装后务必在配置文件中添加 API 密钥
 - 如需自定义工作空间路径，可在配置中调整 agents.default.workspace
 - 定期检查模板同步结果，确保工作空间中的模板文件完整
+- 在 CI/CD 环境中，建议使用自动化脚本而非交互式确认
 
-章节来源
+**更新** 新增了 CI/CD 环境的最佳实践建议。
+
+**章节来源**
 - [schema.ts:20-31](file://src/config/schema.ts#L20-L31)
-- [cli.ts:50-55](file://src/cli.ts#L50-L55)
+- [cli.ts:66-74](file://src/cli.ts#L66-L74)
+
+### 依赖说明
+- @clack/prompts：提供用户友好的确认对话框
+- chalk：提供彩色输出支持
+- commander：命令行接口框架
+- zod：配置模式验证
+
+**新增** 详细列出了所有相关依赖及其作用。
+
+**章节来源**
+- [package.json:22-29](file://package.json#L22-L29)
