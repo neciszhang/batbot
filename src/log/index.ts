@@ -5,7 +5,7 @@ const log = console.log;
 const logger = {
   info: (message: string, ...args: (string | number | boolean)[]) => {
     const formatted = args.length > 0 ? message.replace(/%s/g, () => String(args.shift())) : message;
-    log(chalk.blue('ℹ'), chalk.white(formatted));
+    log(chalk.white(formatted));
   },
 
   success: (message: string, ...args: (string | number | boolean)[]) => {
@@ -30,6 +30,10 @@ const logger = {
 
   title: (message: string) => {
     log(chalk.bold.cyan('\n' + message));
+  },
+
+  gray: (message: string) => {
+    log(chalk.gray(message));
   },
 
   divider: () => {

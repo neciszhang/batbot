@@ -1,6 +1,7 @@
-import { existsSync } from "fs";
+import { existsSync, mkdirSync } from "node:fs";
 import chalk from "chalk";
 import { BatBotCommand } from "./command";
+import { syncWorkspaceTemplates } from "./utils";
 import { VERSION, LOGO } from "./index";
 import {
   getConfigPath,
@@ -22,20 +23,31 @@ program
   .description("Initialize batbot configuration and workspace.")
   .action(() => {
     const configPath = getConfigPath();
-    const workspacePath = getWorkspacePath();
+    const workspace = getWorkspacePath();
 
     const config = ConfigSchema.parse(undefined);
 
     if (existsSync(configPath)) {
+      console.log(`\x1b[33mConfig already exists at ${configPath}\x1b[0m`);
+      console.log(
+        "  \x1b[1my\x1b[0m = overwrite with defaults (existing values will be lost)",
+      );
+      console.log(
+        "  \x1b[1mN\x1b[0m = refresh config, keeping existing values and adding new fields",
+      );
     } else {
       saveConfig(config, configPath);
+      logger.success(`Created config at ${configPath}`);
     }
 
-    if (!existsSync(workspacePath)) {
-      logger.info(`Creating workspace directory: ${workspacePath}`);
+    if (!existsSync(workspace)) {
+      mkdirSync(workspace, { recursive: true });
+      logger.success(`Creating workspace directory: ${workspace}`);
     }
 
-    logger.info(`${LOGO} batbot is ready!`);
+    syncWorkspaceTemplates(workspace);
+
+    logger.info(`\n${LOGO} batbot is ready!`);
     logger.info(`\nNext steps:`);
     logger.info(`  1. Add your API key to ${chalk.cyan(configPath)}`);
     logger.info(`     Get one at: https://openrouter.ai/keys`);

@@ -1,5 +1,5 @@
-import os from "os";
-import { join } from "path";
+import os from "node:os";
+import { join } from "node:path";
 
 export const getConfigPath = (): string => {
   return join(os.homedir(), ".batbot", "config.json");
