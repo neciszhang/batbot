@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync } from "node:fs";
 import chalk from "chalk";
+import { confirm } from "@clack/prompts";
 import { BatBotCommand } from "./command";
 import { syncWorkspaceTemplates } from "./utils";
 import { VERSION, LOGO } from "./index";
@@ -7,6 +8,7 @@ import {
   getConfigPath,
   getWorkspacePath,
   saveConfig,
+  loadConfig,
   ConfigSchema,
 } from "./config";
 import { logger } from "./log";
@@ -21,22 +23,36 @@ program
 program
   .command("onboard")
   .description("Initialize batbot configuration and workspace.")
-  .action(() => {
+  .action(async () => {
     const configPath = getConfigPath();
     const workspace = getWorkspacePath();
 
     const config = ConfigSchema.parse(undefined);
 
     if (existsSync(configPath)) {
-      console.log(`\x1b[33mConfig already exists at ${configPath}\x1b[0m`);
-      console.log(
-        "  \x1b[1my\x1b[0m = overwrite with defaults (existing values will be lost)",
+      logger.warn(`Config already exists at ${configPath}`);
+      logger.info(
+        "Yes = overwrite with defaults (existing values will be lost)",
       );
-      console.log(
-        "  \x1b[1mN\x1b[0m = refresh config, keeping existing values and adding new fields",
+      logger.info(
+        "No = refresh config, keeping existing values and adding new fields",
       );
+      const isOverwrite = await confirm({
+        message: "Overwrite?",
+      });
+
+      if (isOverwrite) {
+        saveConfig(config);
+        logger.success(`Config reset to defaults at ${configPath}`);
+      } else {
+        const existingConfig = loadConfig();
+        saveConfig(existingConfig);
+        logger.success(
+          `Config refreshed at ${configPath} (existing values preserved)`,
+        );
+      }
     } else {
-      saveConfig(config, configPath);
+      saveConfig(config);
       logger.success(`Created config at ${configPath}`);
     }
 

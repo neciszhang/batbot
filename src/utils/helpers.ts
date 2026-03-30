@@ -36,7 +36,7 @@ export function syncWorkspaceTemplates(
 
   _write(`${templatesPath}/memory/MEMORY.md`, `${workspace}/memory/MEMORY.md`);
   _write(null, `${workspace}/memory/HISTORY.md`);
-  mkdirSync(`${workspace}/skills`);
+  mkdirSync(`${workspace}/skills`, { recursive: true });
 
   if (!silent) {
     for (const name of added) {
