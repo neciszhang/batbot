@@ -21,13 +21,16 @@ export const AgentDefaultSchema = z.object({
   workspace: z.string().default("~/.batbot/workspace"),
   model: z.string().default("bailian/qwen3.5-plus"),
   provider: z.string().default("auto"),
-  maxTokens: z.number().int().positive().default(8192),
+  max_completion_tokens: z.number().int().positive().default(8192),
   contextWindowTokens: z.number().int().positive().default(65536),
   temperature: z.number().min(0).max(2).default(0.1),
   maxToolIterations: z.number().int().positive().default(40),
   // Deprecated: memoryWindow is ignored at runtime
   memoryWindow: z.number().nullable().optional(),
-  reasoningEffort: z.enum(["low", "medium", "high"]).nullable().default(null),
+  reasoning_effort: z
+    .enum(["none", "minimal", "low", "medium", "high", "xhigh"])
+    .nullable()
+    .default(null),
 });
 
 export type AgentDefault = z.infer<typeof AgentDefaultSchema>;
