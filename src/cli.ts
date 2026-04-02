@@ -11,7 +11,7 @@ import {
   loadConfig,
   ConfigSchema,
 } from "./config";
-import { PROVIDER_SPECS } from "./providers";
+import { getProviderLabel, PROVIDER_SPECS } from "./providers";
 import { logger } from "./log";
 
 const program = new BatBotCommand();
@@ -94,9 +94,7 @@ program
   .action(() => {
     const configPath = getConfigPath();
     const config = loadConfig();
-    // console.log(config);
     const workspace = config.workspacePath;
-    console.log(workspace);
     logger.info(`\n${LOGO} batbot is ready!`);
     logger.info(
       `Config file: ${logger.chalk.magenta(configPath)} ${existsSync(configPath) ? logger.chalk.green("✓") : logger.chalk.red("✗")}`,
@@ -109,8 +107,24 @@ program
       logger.info(`Model: ${config.agents.defaults.model}`);
     }
 
-    for (const spec of PROVIDER_SPECS){
-      const p = config.providers[spec.name];
+    for (const spec of PROVIDER_SPECS) {
+      const p = config.providers[spec.name as keyof typeof config.providers];
+      if (!p) continue;
+
+      const label = getProviderLabel(spec);
+
+      if (spec.is_local) {
+        if (Boolean(p.apiBase)) {
+          logger.info(`${label}: ${logger.chalk.green("✓")}`);
+        } else {
+          logger.info(`${label}: ${logger.chalk.gray("not set")}`);
+        }
+      }
+      if (Boolean(p.apiKey)) {
+        logger.info(`${label}: ${logger.chalk.green("✓")}`);
+      } else {
+        logger.info(`${label}: ${logger.chalk.gray("not set")}`);
+      }
     }
   });
 

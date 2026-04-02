@@ -50,6 +50,8 @@ export interface ProviderSpec {
   is_direct?: boolean;
 }
 
+export const getProviderLabel = (spec: ProviderSpec) => spec.display_name || spec.name;
+
 export const PROVIDER_SPECS: ProviderSpec[] = [
   {
     name: "custom",
