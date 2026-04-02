@@ -36,7 +36,7 @@ export const AgentDefaultSchema = z.object({
 export type AgentDefault = z.infer<typeof AgentDefaultSchema>;
 
 export const AgentsConfigSchema = z.object({
-  default: AgentDefaultSchema.prefault({}),
+  defaults: AgentDefaultSchema.prefault({}),
 });
 
 export type AgentsConfig = z.infer<typeof AgentsConfigSchema>;
@@ -50,6 +50,9 @@ export const ProviderConfigSchema = z.object({
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
 
 export const ProvidersConfigSchema = z.object({
+  // Any OpenAI-compatible endpoint
+  custom: ProviderConfigSchema.prefault({}),
+  // bailian
   bailian: ProviderConfigSchema.prefault({}),
 });
 
@@ -131,15 +134,31 @@ export const ConfigSchema = z
 export type Config = z.infer<typeof ConfigSchema>;
 
 export class ConfigManger {
-  private config: Config;
+  private _config: Config;
 
   constructor(config: Config) {
-    this.config = config;
+    this._config = config;
+  }
+
+  get agents() {
+    return this._config.agents;
+  }
+  get channels() {
+    return this._config.channels;
+  }
+  get providers() {
+    return this._config.providers;
+  }
+  get gateway() {
+    return this._config.gateway;
+  }
+  get tools() {
+    return this._config.tools;
   }
 
   get workspacePath(): string {
     const workspace =
-      this.config.agents.default?.workspace ?? "~/.batbot/workspace";
+      this._config.agents.defaults?.workspace ?? "~/.batbot/workspace";
     if (workspace.startsWith("~")) {
       return path.join(os.homedir(), workspace.slice(1));
     }

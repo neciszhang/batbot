@@ -11,6 +11,7 @@ import {
   loadConfig,
   ConfigSchema,
 } from "./config";
+import { PROVIDER_SPECS } from "./providers";
 import { logger } from "./log";
 
 const program = new BatBotCommand();
@@ -91,7 +92,26 @@ program
   .command("status")
   .description("Show batbot status.")
   .action(() => {
-    console.log("Showing batbot status...");
+    const configPath = getConfigPath();
+    const config = loadConfig();
+    // console.log(config);
+    const workspace = config.workspacePath;
+    console.log(workspace);
+    logger.info(`\n${LOGO} batbot is ready!`);
+    logger.info(
+      `Config file: ${logger.chalk.magenta(configPath)} ${existsSync(configPath) ? logger.chalk.green("✓") : logger.chalk.red("✗")}`,
+    );
+    logger.info(
+      `Workspace: ${logger.chalk.magenta(workspace)} ${existsSync(workspace) ? logger.chalk.green("✓") : logger.chalk.red("✗")}`,
+    );
+
+    if (existsSync(configPath)) {
+      logger.info(`Model: ${config.agents.defaults.model}`);
+    }
+
+    for (const spec of PROVIDER_SPECS){
+      const p = config.providers[spec.name];
+    }
   });
 
 program

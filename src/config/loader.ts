@@ -1,22 +1,25 @@
 import path from "node:path";
 import fs from "node:fs";
 import { getConfigPath } from "./paths";
-import { Config, ConfigSchema } from "./schema";
+import { Config, ConfigSchema, ConfigManger } from "./schema";
 import { logger } from "../log";
 
 export const loadConfig = (configPath?: string) => {
   const filePath = configPath || getConfigPath();
-  const dir = path.dirname(filePath);
+  // const dir = path.dirname(filePath);
+
+  let config: Config;
 
   try {
     const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-    return ConfigSchema.parse(data);
+    config = ConfigSchema.parse(data);
   } catch (e) {
     logger.warn(`Failed to load config from ${filePath}: ${e}`);
     logger.info(`Using default configuration.`);
+    config = ConfigSchema.parse({});
   }
 
-  return ConfigSchema.parse({});
+  return new ConfigManger(config);
 };
 
 export const saveConfig = (config: Config, configPath?: string) => {
