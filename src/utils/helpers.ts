@@ -44,3 +44,22 @@ export function syncWorkspaceTemplates(
     }
   }
 }
+
+/**
+ * Ensures that the directory exists, if not it creates it.
+ * @param path
+ * @returns */
+export const ensure_dir = (path: string) => {
+  if (!existsSync(path)) {
+    mkdirSync(path, { recursive: true });
+  }
+  return path;
+};
+
+/**
+ * Replaces invalid characters in a filename with underscores.
+ * @param name
+ * @returns */
+export const safe_filename = (name: string) => {
+  return name.replace(/[<>:"/\\|?*]/g, "_").trim();
+};
