@@ -1,7 +1,7 @@
 {
   "name": "batbot",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.0",
+  "description": "🦇 batbot - Personal AI Assistant CLI",
   "homepage": "https://github.com/neciszhang/batbot#readme",
   "bugs": {
     "url": "https://github.com/neciszhang/batbot/issues"
@@ -13,10 +13,22 @@
   "license": "MIT",
   "author": "Necis",
   "type": "commonjs",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "batbot": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "tsc --watch",
     "start": "node dist/index.js",
+    "prepublishOnly": "npm run build",
     "build": "tsc && cpy 'src/**/*.md' dist/ --parents",
     "test": "node dist/cli.js"
   },

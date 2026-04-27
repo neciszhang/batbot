@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { existsSync, mkdirSync } from "node:fs";
 import chalk from "chalk";
 import { confirm } from "@clack/prompts";
