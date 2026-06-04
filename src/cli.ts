@@ -3,6 +3,7 @@
 import { existsSync, mkdirSync } from "node:fs";
 import chalk from "chalk";
 import { confirm } from "@clack/prompts";
+import { resolve } from "node:path";
 import { BatBotCommand } from "./command";
 import { syncWorkspaceTemplates } from "./utils";
 import { VERSION, LOGO } from "./index";
@@ -12,9 +13,51 @@ import {
   saveConfig,
   loadConfig,
   ConfigSchema,
+  setConfigPath,
+  ConfigManger,
 } from "./config";
-import { getProviderLabel, PROVIDER_SPECS } from "./providers";
+import { CustomProvider, getProviderLabel, PROVIDER_SPECS } from "./providers";
 import { logger } from "./log";
+import { MessageBus } from "./bus";
+import { SessionManager } from "./session/manager";
+
+const _loadRuntimeConfig = (configPath: string, workspace: string) => {
+  let config;
+  if (configPath) {
+    const fullPath = resolve(configPath);
+    if (!existsSync(fullPath)) {
+      logger.error(`Error: Config file not found:  ${fullPath}`);
+      process.exit(1);
+    }
+    setConfigPath(fullPath);
+    config = loadConfig(fullPath);
+    logger.info(`Using config file: ${fullPath}`);
+  } else {
+    config = loadConfig();
+  }
+  if (workspace) {
+    config.agents.defaults.workspace = workspace;
+  }
+  return config;
+};
+
+const _makeProvider = (config: ConfigManger) => {
+  const model = config.agents.defaults.model;
+  const providerName = config.getProviderName(model);
+  const p = config.getProvider(model);
+  if (providerName === "custom") {
+    if (p) {
+      const provider = new CustomProvider(
+        p.apiKey,
+        p.apiBase ?? "http://localhost:8000/v1",
+        model,
+      );
+      return provider;
+    }
+  }
+  // const providerName =
+  // return config.providers[config.agents.defaults.provider];
+};
 
 const program = new BatBotCommand();
 
@@ -86,8 +129,18 @@ program
 program
   .command("agent")
   .description("Interact with the agent directly.")
-  .action(() => {
-    console.log("Interacting with agent...");
+  .option("-m, --message <message>", "Message to send to the agent")
+  .option("-s, --session <id>", "Session ID", "cli:direct")
+  .option("-w, --workspace <path>", "Workspace path")
+  .option("-c, --config <path>", "Path to config file")
+  .action((options) => {
+    const config = _loadRuntimeConfig(options.config, options.workspace);
+    syncWorkspaceTemplates(config.workspacePath);
+    const bus = new MessageBus();
+    const provider = _makeProvider(config);
+    const sessionManager = new SessionManager(config.workspacePath);
+
+    // console.log(JSON.stringify(config));
   });
 
 program

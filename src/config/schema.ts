@@ -1,6 +1,7 @@
 import path from "node:path";
 import os from "node:os";
 import { z } from "zod";
+import { PROVIDER_SPECS } from "../providers";
 
 export const DingTalkConfigSchema = z.object({
   enabled: z.boolean().default(false),
@@ -49,12 +50,14 @@ export const ProviderConfigSchema = z.object({
 
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
 
-export const ProvidersConfigSchema = z.object({
-  // Any OpenAI-compatible endpoint
-  custom: ProviderConfigSchema.prefault({}),
-  // bailian
-  bailian: ProviderConfigSchema.prefault({}),
-});
+export const ProvidersConfigSchema = z
+  .object({
+    // Any OpenAI-compatible endpoint
+    custom: ProviderConfigSchema.prefault({}),
+    // bailian
+    bailian: ProviderConfigSchema.prefault({}),
+  })
+  .catchall(ProviderConfigSchema);
 
 export type ProvidersConfig = z.infer<typeof ProvidersConfigSchema>;
 
@@ -146,7 +149,7 @@ export class ConfigManger {
   get channels() {
     return this._config.channels;
   }
-  get providers() {
+  get providers(): ProvidersConfig {
     return this._config.providers;
   }
   get gateway() {
@@ -163,5 +166,99 @@ export class ConfigManger {
       return path.join(os.homedir(), workspace.slice(1));
     }
     return path.resolve(workspace);
+  }
+
+  /**
+   * Match provider config and its registry name.
+   * @param model
+   * @returns [config, specName] or [undefined, undefined].
+   */
+  private _matchProvider(model: string) {
+    const forced = this.agents.defaults?.provider;
+
+    if (forced !== "auto") {
+      const p = this.providers[forced];
+      return p ? [p, forced] : [undefined, undefined];
+    }
+
+    const modelStr = model ?? this.agents.defaults.model;
+    const modelLower = modelStr.toLowerCase();
+    const modelNormalized = modelLower.replace(/-/g, "");
+    const modelPrefix = modelLower.includes("/")
+      ? modelLower.split("/")[0]
+      : "";
+    const normalizedPrefix = modelPrefix.replace(/-/g, "");
+
+    const kwMatches = (kw: string): boolean => {
+      const kwLower = kw.toLowerCase();
+      return (
+        modelLower.includes(kwLower) ||
+        modelNormalized.includes(kwLower.replace(/-/g, "_"))
+      );
+    };
+
+    // Explicit provider prefix wins — prevents `github-copilot/...codex` matching openai_codex.
+    for (const spec of PROVIDER_SPECS) {
+      const p = this.providers[spec.name];
+      if (p && modelPrefix && normalizedPrefix === spec.name) {
+        if (spec.is_oauth || spec.is_local || p.apiKey) {
+          return [p, spec.name];
+        }
+      }
+    }
+
+    // Match by keyword (order follows PROVIDER_SPECS registry)
+    for (const spec of PROVIDER_SPECS) {
+      const p = this.providers[spec.name];
+      if (p && spec.keywords.some(kwMatches)) {
+        if (spec.is_oauth || spec.is_local || p.apiKey) {
+          return [p, spec.name];
+        }
+      }
+    }
+
+    // Fallback: configured local providers can route models without
+    // provider-specific keywords (for example plain "llama3.2" on Ollama).
+    for (const spec of PROVIDER_SPECS) {
+      if (!spec.is_local) continue;
+      const p = this.providers[spec.name];
+      if (p?.apiBase) {
+        return [p, spec.name];
+      }
+    }
+
+    // Fallback: gateways first, then others (follows registry order)
+    // OAuth providers are NOT valid fallbacks — they require explicit model selection
+
+    for (const spec of PROVIDER_SPECS) {
+      if (spec.is_oauth) continue;
+      const p = this.providers[spec.name];
+      if (p?.apiBase) {
+        return [p, spec.name];
+      }
+    }
+
+    return [undefined, undefined];
+  }
+
+  /**
+   * GGet matched provider config (apiKey, apiBase, extraHeaders).
+   * Falls back to first available.
+   * @param model
+   * @returns
+   */
+  getProvider(model: string): ProviderConfig | undefined {
+    const [p] = this._matchProvider(model);
+    return p as ProviderConfig | undefined;
+  }
+
+  /**
+   * Get the registry name of the matched provider (e.g. "deepseek", "openrouter").
+   * @param model
+   * @returns provider name or undefined.
+   */
+  getProviderName(model: string) {
+    const [, name] = this._matchProvider(model);
+    return name;
   }
 }

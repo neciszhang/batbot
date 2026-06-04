@@ -46,11 +46,15 @@ export interface ProviderSpec {
   // Per-model param overrides, e.g. [["kimi-k2.5", { temperature: 1.0 }]]
   model_overrides?: Array<[string, Record<string, unknown>]>;
 
+  // OAuth-based providers (e.g., OpenAI Codex) don't use API keys
+  is_oauth?: boolean;
+
   // Direct providers bypass LiteLLM entirely (e.g., CustomProvider)
   is_direct?: boolean;
 }
 
-export const getProviderLabel = (spec: ProviderSpec) => spec.display_name || spec.name;
+export const getProviderLabel = (spec: ProviderSpec) =>
+  spec.display_name || spec.name;
 
 export const PROVIDER_SPECS: ProviderSpec[] = [
   {
@@ -61,13 +65,14 @@ export const PROVIDER_SPECS: ProviderSpec[] = [
     litellm_prefix: "",
     is_direct: true,
   },
+  // DashScope: Qwen models, needs "dashscope/" prefix.
   {
-    name: "bailian",
-    keywords: ["bailian"],
-    env_key: "BAILIAN_API_KEY",
-    display_name: "bailian",
-    litellm_prefix: "",
-    skip_prefixes: [],
+    name: "dashscope",
+    keywords: ["qwen", "dashscope"],
+    env_key: "DASHSCOPE_API_KEY",
+    display_name: "DashScope",
+    litellm_prefix: "dashscope", // qwen-max → dashscope/qwen-max
+    skip_prefixes: ["dashscope/", "openrouter/"],
     env_extras: [],
     is_gateway: false,
     is_local: false,

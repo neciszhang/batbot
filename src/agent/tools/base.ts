@@ -78,12 +78,12 @@ export abstract class Tool<S extends z.ZodType = z.ZodType> {
    * @param params Parameters to cast.
    * @returns Casted parameters.
    */
-  cast_params(params: unknown): z.infer<S> {
+  castParams(params: unknown): z.infer<S> {
     const schema: JsonSchema = this.parameters || {};
     if (schema.type ?? "object" !== "object") {
       return params as z.infer<S>;
     }
-    return this._cast_object(params, schema) as z.infer<S>;
+    return this._castObject(params, schema) as z.infer<S>;
   }
 
   /**
@@ -92,7 +92,7 @@ export abstract class Tool<S extends z.ZodType = z.ZodType> {
    * @param schema JSON Schema for casting.
    * @returns Casted object.
    */
-  _cast_object(obj: unknown, schema: JsonSchema): Record<string, unknown> {
+  _castObject(obj: unknown, schema: JsonSchema): Record<string, unknown> {
     if (typeof obj !== "object" || obj === null || Array.isArray(obj)) {
       return obj as Record<string, unknown>;
     }
@@ -102,7 +102,7 @@ export abstract class Tool<S extends z.ZodType = z.ZodType> {
 
     for (const [key, value] of Object.entries(obj)) {
       if (props[key]) {
-        result[key] = this._cast_value(value, props[key]);
+        result[key] = this._castValue(value, props[key]);
       } else {
         result[key] = value;
       }
@@ -117,7 +117,7 @@ export abstract class Tool<S extends z.ZodType = z.ZodType> {
    * @param schema JSON Schema for casting.
    * @returns Casted value.
    */
-  _cast_value(val: unknown, schema: JsonSchema): unknown {
+  _castValue(val: unknown, schema: JsonSchema): unknown {
     const targetType = schema.type;
     const TM = Tool._TYPE_MAP;
     if (targetType === "boolean" && TM.boolean(val)) {
@@ -175,13 +175,13 @@ export abstract class Tool<S extends z.ZodType = z.ZodType> {
     if (targetType === "array" && TM.array(val)) {
       const itemSchema = schema.items;
       return itemSchema
-        ? (val as unknown[]).map((v) => this._cast_value(v, itemSchema))
+        ? (val as unknown[]).map((v) => this._castValue(v, itemSchema))
         : val;
     }
 
     // Object -> recurse into items
     if (targetType === "object" && TM.object(val)) {
-      return this._cast_object(val, schema);
+      return this._castObject(val, schema);
     }
 
     return val;
@@ -191,7 +191,7 @@ export abstract class Tool<S extends z.ZodType = z.ZodType> {
    * Validate tool parameters against JSON schema. Returns error list (empty if valid).
    * @param params Parameters to validate.
    */
-  validate_params(params: unknown): string[] {
+  validateParams(params: unknown): string[] {
     if (
       typeof params !== "object" ||
       params === null ||
@@ -287,7 +287,7 @@ export abstract class Tool<S extends z.ZodType = z.ZodType> {
     return errors;
   }
 
-  to_schema(): ToolSchema {
+  toSchema(): ToolSchema {
     return {
       type: "function",
       function: {
