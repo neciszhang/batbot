@@ -20,6 +20,7 @@ import { CustomProvider, getProviderLabel, PROVIDER_SPECS } from "./providers";
 import { logger } from "./log";
 import { MessageBus } from "./bus";
 import { SessionManager } from "./session/manager";
+import { AgentLoop } from "./agent/loop";
 
 const _loadRuntimeConfig = (configPath: string, workspace: string) => {
   let config;
@@ -133,14 +134,50 @@ program
   .option("-s, --session <id>", "Session ID", "cli:direct")
   .option("-w, --workspace <path>", "Workspace path")
   .option("-c, --config <path>", "Path to config file")
-  .action((options) => {
+  .action(async (options) => {
     const config = _loadRuntimeConfig(options.config, options.workspace);
     syncWorkspaceTemplates(config.workspacePath);
-    const bus = new MessageBus();
+
     const provider = _makeProvider(config);
+    if (!provider) {
+      logger.error(
+        `No provider configured for model "${config.agents.defaults.model}". ` +
+          `Add an apiKey/apiBase under providers in ${getConfigPath()}.`,
+      );
+      process.exit(1);
+    }
+
+    const bus = new MessageBus();
     const sessionManager = new SessionManager(config.workspacePath);
 
-    // console.log(JSON.stringify(config));
+    const loop = new AgentLoop({
+      bus,
+      provider,
+      workspace: config.workspacePath,
+      model: config.agents.defaults.model,
+      max_iterations: config.agents.defaults.maxToolIterations,
+      exec_timeout: config.tools.exec.timeout,
+      exec_path_append: config.tools.exec.pathAppend,
+      restrict_to_workspace: config.tools.restrictToWorkspace,
+      session_manager: sessionManager,
+    });
+
+    if (options.message) {
+      const reply = await loop.process_direct(options.message, {
+        session_key: options.session,
+        channel: "cli2",
+        chat_id: "direct",
+        on_progress: (content, opts) => {
+          const prefix = opts?.tool_hint ? chalk.cyan("→ ") : chalk.dim("· ");
+          process.stderr.write(`${prefix}${content}\n`);
+        },
+      });
+      process.stdout.write(reply + "\n");
+      return;
+    }
+
+    logger.error("No message provided. Use -m <message> for one-shot mode.");
+    process.exit(1);
   });
 
 program
